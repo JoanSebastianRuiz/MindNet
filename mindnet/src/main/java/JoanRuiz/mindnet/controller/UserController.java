@@ -2,6 +2,7 @@ package JoanRuiz.mindnet.controller;
 
 import JoanRuiz.mindnet.dto.FollowRequestDTO;
 import JoanRuiz.mindnet.dto.UnfollowRequestDTO;
+import JoanRuiz.mindnet.dto.UserRequestDTO;
 import JoanRuiz.mindnet.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -33,11 +34,16 @@ public class UserController {
 
     @DeleteMapping("/unfollow")
     public ResponseEntity<String> unfollowUser(@RequestBody UnfollowRequestDTO followRequestDTO) {
-        if (userService.unfollowUser(followRequestDTO.getUsername(), followRequestDTO.getUsernameUnfollowed())) {
-            return ResponseEntity.ok("User unfollowed");
-        } else {
-            return ResponseEntity.badRequest().body("Error unfollowing user");
+        boolean success = userService.unfollowUser(followRequestDTO.getUsername(), followRequestDTO.getUsernameUnfollowed());
+        if (success) {
+            return ResponseEntity.ok("User unfollowed successfully");
         }
+        return ResponseEntity.badRequest().body("Error unfollowing user");
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<String> updateUser(@PathVariable Integer id, @RequestBody UserRequestDTO userRequestDTO) {
+        return userService.updateUser(id, userRequestDTO);
     }
 
 }

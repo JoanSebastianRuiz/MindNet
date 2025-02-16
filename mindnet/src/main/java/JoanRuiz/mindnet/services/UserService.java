@@ -1,11 +1,13 @@
 package JoanRuiz.mindnet.services;
 
 import JoanRuiz.mindnet.dto.UserBasicInfoDTO;
+import JoanRuiz.mindnet.dto.UserRequestDTO;
 import JoanRuiz.mindnet.dto.UserResponseDTO;
 import JoanRuiz.mindnet.entities.User;
 import JoanRuiz.mindnet.repositories.UserRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -46,6 +48,40 @@ public class UserService {
         }
     }
 
+    public ResponseEntity<String> updateUser(Integer id, UserRequestDTO userRequestDTO) {
+        try {
+            User user = userRepository.findById(id).orElseThrow(()->new Exception("User not found"));
+
+            /*
+            if(userRepository.findByUsername(userRequestDTO.getUsername()).isPresent() && !user.getUsername().equals(userRequestDTO.getUsername())){
+                return ResponseEntity.badRequest().body("Username already exists");
+            }
+            user.setUsername(userRequestDTO.getUsername());
+            */
+
+            user.setFullname(userRequestDTO.getFullname());
+
+            if(userRepository.findByEmail(userRequestDTO.getEmail()).isPresent() && !user.getEmail().equals(userRequestDTO.getEmail())){
+                return ResponseEntity.badRequest().body("Email already exists");
+            }
+            user.setEmail(userRequestDTO.getEmail());
+            user.setImageUrl(userRequestDTO.getImageUrl());
+            user.setBiography(userRequestDTO.getBiography());
+
+            if(userRepository.findByCellphone(userRequestDTO.getCellphone()).isPresent() && !user.getCellphone().equals(userRequestDTO.getCellphone())){
+                return ResponseEntity.badRequest().body("Cellphone already exists");
+            }
+            user.setCellphone(userRequestDTO.getCellphone());
+            user.setBirthday(userRequestDTO.getBirthday());
+
+            userRepository.save(user);
+            return ResponseEntity.ok("User updated");
+        } catch (Exception e) {
+            System.out.println("Error: " + e.getMessage());
+            return ResponseEntity.badRequest().body("Error updating user");
+        }
+    }
+
     @Transactional
     public Boolean followUser(String username, String usernameFollowed) {
         try {
@@ -69,21 +105,25 @@ public class UserService {
     @Transactional
     public Boolean unfollowUser(String username, String usernameUnfollowed) {
         try {
-            User user = userRepository.findByUsername(username).orElseThrow(()->new Exception("User not found"));
-            User userFollowed = userRepository.findByUsername(usernameUnfollowed).orElseThrow(()->new Exception("User not found"));
+            User user = userRepository.findByUsername(username)
+                    .orElseThrow(() -> new Exception("User not found"));
+            User userUnfollowed = userRepository.findByUsername(usernameUnfollowed)
+                    .orElseThrow(() -> new Exception("User to unfollow not found"));
 
-            if(user!=null && userFollowed!=null && user.getFollowing().contains(userFollowed)){
-                user.getFollowing().remove(usernameUnfollowed);
+            if (user.getFollowing().contains(userUnfollowed)) {
+                user.getFollowing().remove(userUnfollowed);
+                userUnfollowed.getFollowers().remove(user);
                 userRepository.save(user);
                 return true;
-            } else {
-                return false;
             }
+
+            return false;
         } catch (Exception e) {
             System.out.println("Error: " + e.getMessage());
             return false;
         }
     }
+
 
     private Optional<List<UserBasicInfoDTO>> getFollowers(String username) {
         try {
