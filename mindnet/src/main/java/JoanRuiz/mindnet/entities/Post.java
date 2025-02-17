@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 public class Post {
@@ -37,12 +38,12 @@ public class Post {
             joinColumns = @JoinColumn(name = "id_post"),
             inverseJoinColumns = @JoinColumn(name = "id_tag")
     )
-    private List<Tag> tags;
+    private Set<Tag> tags;
 
     public Post() {
     }
 
-    public Post(Integer id, User user, String body, String imageUrl, Timestamp datetime, List<Comment> comments, List<User> mentionedUsers, List<User> usersReacted, List<Tag> tags) {
+    public Post(Integer id, User user, String body, String imageUrl, Timestamp datetime, List<Comment> comments, List<User> mentionedUsers, List<User> usersReacted, Set<Tag> tags) {
         this.id = id;
         this.user = user;
         this.body = body;
@@ -118,11 +119,11 @@ public class Post {
         this.usersReacted = usersReacted;
     }
 
-    public List<Tag> getTags() {
+    public Set<Tag> getTags() {
         return tags;
     }
 
-    public void setTags(List<Tag> tags) {
+    public void setTags(Set<Tag> tags) {
         this.tags = tags;
     }
 }

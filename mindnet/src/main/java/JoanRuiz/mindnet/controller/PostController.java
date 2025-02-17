@@ -1,5 +1,7 @@
 package JoanRuiz.mindnet.controller;
 
+import JoanRuiz.mindnet.dto.LikeRequest;
+import JoanRuiz.mindnet.dto.PostRequestDTO;
 import JoanRuiz.mindnet.entities.Post;
 import JoanRuiz.mindnet.services.PostService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +16,7 @@ public class PostController {
     private PostService postService;
 
     @PostMapping
-    public ResponseEntity<String> createPost(@RequestBody Post post) {
+    public ResponseEntity<String> createPost(@RequestBody PostRequestDTO post) {
         if (postService.createPost(post)) {
             return ResponseEntity.ok("Post created");
         } else {
@@ -56,5 +58,15 @@ public class PostController {
         } else {
             return ResponseEntity.badRequest().body("Error updating post");
         }
+    }
+
+    @PutMapping("/{id}/like")
+    public ResponseEntity<String> likePost(@PathVariable Integer id, @RequestBody LikeRequest likeRequest) {
+        return postService.reactToPost(id, likeRequest.getIdUser());
+    }
+
+    @GetMapping("/{id}/is-liked")
+    public ResponseEntity<Boolean> userLikeToPost(@PathVariable Integer id, @RequestParam Integer idUser) {
+        return postService.userLikeToPost(id, idUser);
     }
 }

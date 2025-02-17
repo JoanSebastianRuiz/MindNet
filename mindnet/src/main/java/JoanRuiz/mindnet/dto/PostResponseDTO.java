@@ -3,6 +3,7 @@ package JoanRuiz.mindnet.dto;
 import JoanRuiz.mindnet.entities.Post;
 
 import java.sql.Timestamp;
+import java.util.List;
 
 public class PostResponseDTO {
     private Integer id;
@@ -12,11 +13,11 @@ public class PostResponseDTO {
     private String  body;
     private String  imageUrl;
     private Timestamp datetime;
+    private List<CommentResponseDTO> comments;
     private Integer likesCount;
-    private Integer commentsCount;
     private String imageUrlUser;
 
-    public PostResponseDTO(Post post, Integer likesCount, Integer commentsCount) {
+    public PostResponseDTO(Post post, Integer likesCount) {
         this.id = post.getId();
         this.username = post.getUser().getUsername();
         this.fullname = post.getUser().getFullname();
@@ -24,7 +25,6 @@ public class PostResponseDTO {
         this.imageUrl = post.getImageUrl();
         this.datetime = post.getDatetime();
         this.likesCount = likesCount;
-        this.commentsCount = commentsCount;
         this.imageUrlUser = post.getUser().getImageUrl();
         this.idUser = post.getUser().getId();
     }
@@ -69,14 +69,6 @@ public class PostResponseDTO {
         this.likesCount = likesCount;
     }
 
-    public Integer getCommentsCount() {
-        return commentsCount;
-    }
-
-    public void setCommentsCount(Integer commentsCount) {
-        this.commentsCount = commentsCount;
-    }
-
     public String getUsername() {
         return username;
     }
@@ -107,5 +99,13 @@ public class PostResponseDTO {
 
     public void setIdUser(Integer idUser) {
         this.idUser = idUser;
+    }
+
+    public List<CommentResponseDTO> getComments() {
+        return comments;
+    }
+
+    public void setComments(List<CommentResponseDTO> comments) {
+        this.comments = comments;
     }
 }

@@ -50,7 +50,7 @@ CREATE TABLE follower (
 
 CREATE TABLE tag (
     id SERIAL PRIMARY KEY,
-    tag VARCHAR(100) UNIQUE NOT NULL
+    name VARCHAR(100) UNIQUE NOT NULL
 );
 
 CREATE TABLE tag_post (
@@ -58,6 +58,14 @@ CREATE TABLE tag_post (
     id_post INTEGER NOT NULL,
     id_tag INTEGER NOT NULL,
     FOREIGN KEY (id_post) REFERENCES post(id) ON DELETE CASCADE,
+    FOREIGN KEY (id_tag) REFERENCES tag(id) ON DELETE CASCADE
+);
+
+CREATE TABLE tag_comment (
+    id SERIAL PRIMARY KEY,
+    id_comment INTEGER NOT NULL,
+    id_tag INTEGER NOT NULL,
+    FOREIGN KEY (id_comment) REFERENCES comment(id) ON DELETE CASCADE,
     FOREIGN KEY (id_tag) REFERENCES tag(id) ON DELETE CASCADE
 );
 

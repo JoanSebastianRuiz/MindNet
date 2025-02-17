@@ -1,5 +1,6 @@
 package JoanRuiz.mindnet.controller;
 
+import JoanRuiz.mindnet.dto.CommentRequestDTO;
 import JoanRuiz.mindnet.entities.Comment;
 import JoanRuiz.mindnet.services.CommentService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +23,7 @@ public class CommentController {
     }
 
     @PostMapping
-    public ResponseEntity<String> createComment(@RequestBody Comment comment) {
+    public ResponseEntity<String> createComment(@RequestBody CommentRequestDTO comment) {
         if (commentService.createComment(comment)) {
             return ResponseEntity.ok("Comment created");
         } else {

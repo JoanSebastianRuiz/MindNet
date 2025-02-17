@@ -9,18 +9,26 @@ public class Tag {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-    private String  tag;
+    private String  name;
 
     @ManyToMany(mappedBy = "tags", fetch = FetchType.LAZY)
     private List<Post> posts;
 
+    @ManyToMany(mappedBy = "tags", fetch = FetchType.LAZY)
+    private List<Comment> comments;
+
     public Tag() {
     }
 
-    public Tag(Integer id, String tag, List<Post> posts) {
+    public Tag(String name) {
+        this.name = name;
+    }
+
+    public Tag(Integer id, String name, List<Post> posts, List<Comment> comments) {
         this.id = id;
-        this.tag = tag;
+        this.name = name;
         this.posts = posts;
+        this.comments = comments;
     }
 
     public Integer getId() {
@@ -31,12 +39,12 @@ public class Tag {
         this.id = id;
     }
 
-    public String getTag() {
-        return tag;
+    public String getName() {
+        return name;
     }
 
-    public void setTag(String tag) {
-        this.tag = tag;
+    public void setName(String name) {
+        this.name = name;
     }
 
     public List<Post> getPosts() {
@@ -45,5 +53,13 @@ public class Tag {
 
     public void setPosts(List<Post> posts) {
         this.posts = posts;
+    }
+
+    public List<Comment> getComments() {
+        return comments;
+    }
+
+    public void setComments(List<Comment> comments) {
+        this.comments = comments;
     }
 }
