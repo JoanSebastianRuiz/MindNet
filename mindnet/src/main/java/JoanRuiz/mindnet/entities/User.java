@@ -52,20 +52,10 @@ public class User implements UserDetails {
     )
     private List<User> followers;  // Usuarios que siguen a este usuario
 
-    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JoinTable(
-            name = "mention_post",
-            joinColumns = @JoinColumn(name = "id_user"),
-            inverseJoinColumns = @JoinColumn(name = "id_post")
-    )
+    @ManyToMany(mappedBy = "mentionedUsers", fetch = FetchType.LAZY)
     private List<Post> mentionedPosts;
 
-    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JoinTable(
-            name = "mention_comment",
-            joinColumns = @JoinColumn(name = "id_user"),
-            inverseJoinColumns = @JoinColumn(name = "id_comment")
-    )
+    @ManyToMany(mappedBy = "mentionedUsers", fetch = FetchType.LAZY)
     private List<Comment> mentionedComments;
 
     @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)

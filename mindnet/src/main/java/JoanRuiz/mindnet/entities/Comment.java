@@ -20,7 +20,12 @@ public class Comment {
     @JoinColumn(name = "idUser")
     private User user;
 
-    @ManyToMany(mappedBy = "mentionedComments", fetch = FetchType.LAZY)
+    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "mention_comment",
+            joinColumns = @JoinColumn(name = "id_comment"),
+            inverseJoinColumns = @JoinColumn(name = "id_user")
+    )
     private List<User> mentionedUsers;
 
     @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)

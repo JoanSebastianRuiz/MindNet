@@ -16,6 +16,8 @@ public class PostResponseDTO {
     private List<CommentResponseDTO> comments;
     private Integer likesCount;
     private String imageUrlUser;
+    private List<MentionedUser> mentionedUsers;
+    private Integer trending;
 
     public PostResponseDTO(Post post, Integer likesCount) {
         this.id = post.getId();
@@ -107,5 +109,21 @@ public class PostResponseDTO {
 
     public void setComments(List<CommentResponseDTO> comments) {
         this.comments = comments;
+    }
+
+    public List<MentionedUser> getMentionedUsers() {
+        return mentionedUsers;
+    }
+
+    public void setMentionedUsers(List<MentionedUser> mentionedUsers) {
+        this.mentionedUsers = mentionedUsers;
+    }
+
+    public Integer getTrending() {
+        return trending;
+    }
+
+    public void setTrending(Integer trending) {
+        this.trending = trending;
     }
 }

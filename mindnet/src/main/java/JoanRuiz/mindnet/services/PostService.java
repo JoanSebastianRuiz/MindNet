@@ -1,6 +1,7 @@
 package JoanRuiz.mindnet.services;
 
 import JoanRuiz.mindnet.dto.CommentResponseDTO;
+import JoanRuiz.mindnet.dto.MentionedUser;
 import JoanRuiz.mindnet.dto.PostRequestDTO;
 import JoanRuiz.mindnet.dto.PostResponseDTO;
 import JoanRuiz.mindnet.entities.Post;
@@ -14,10 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -36,12 +34,14 @@ public class PostService {
     public Boolean createPost(PostRequestDTO post) {
         try{
             Set<Tag> tags = extractTags(post.getBody());
+            List<User> mentionedUsers = extractMentions(post.getBody());
             Post newPost = new Post();
             newPost.setBody(post.getBody());
             newPost.setImageUrl(post.getImageUrl());
             newPost.setUser(userRepository.findByUsername(post.getUsername()).get());
             newPost.setDatetime(post.getDatetime());
             newPost.setTags(tags);
+            newPost.setMentionedUsers(mentionedUsers);
             postRepository.save(newPost);
             return newPost.getId() != null;
         } catch (Exception e) {
@@ -50,19 +50,65 @@ public class PostService {
         }
     }
 
-    public Optional<List<PostResponseDTO>> getPosts() {
+    public Optional<List<PostResponseDTO>> getPosts(String filter, String scope, Integer idUser) {
         try {
-            List<Post> posts = (List<Post>) postRepository.findAll();
-            return Optional.of(posts.stream().map(post -> {
-                Integer likesCount = postRepository.countReactionsByPostId(post.getId());
-                PostResponseDTO postResponseDTO = new PostResponseDTO(post, likesCount);
-                postResponseDTO.setComments(post.getComments().stream().map(CommentResponseDTO::new).collect(Collectors.toList()));
-                return postResponseDTO;
-            }).collect(Collectors.toList()));
+            if (filter != null && scope != null) {
+                if (filter.equals("newest") && scope.equals("all")) {
+                    // Obtener todos los posts ordenados por fecha
+                    List<Post> posts = postRepository.findAllByOrderByDatetimeDesc();
+                    return Optional.of(posts.stream().map(this::mapToPostResponseDTO).collect(Collectors.toList()));
+                } else if (filter.equals("trending") && scope.equals("all")) {
+                    // Obtener todos los posts
+                    List<Post> posts = (List<Post>) postRepository.findAll();
+                    return Optional.of(posts.stream()
+                            .map(this::mapToPostResponseDTO)
+                            .sorted(Comparator.comparingInt(PostResponseDTO::getTrending).reversed())
+                            .collect(Collectors.toList()));
+                } else if (filter.equals("trending") && scope.equals("following")) {
+                    // Obtener posts de los usuarios seguidos, ordenados por trending
+                    List<Post> posts = postRepository.findPostsByUsersFollowedOrdered(idUser);
+                    return Optional.of(posts.stream()
+                            .map(this::mapToPostResponseDTO)
+                            .sorted(Comparator.comparingInt(PostResponseDTO::getTrending).reversed())
+                            .collect(Collectors.toList()));
+                } else if (filter.equals("newest") && scope.equals("following")) {
+                    // Obtener posts de los usuarios seguidos, ordenados por fecha
+                    List<Post> posts = postRepository.findPostsByUsersFollowedOrdered(idUser);
+                    return Optional.of(posts.stream().map(this::mapToPostResponseDTO).collect(Collectors.toList()));
+                }
+            }
+
+            // Si no coincide con ningún filtro/alcance, retornamos Optional.empty()
+            return Optional.empty();
+
         } catch (Exception e) {
-            System.out.println("Error: " + e.getMessage());
+            e.printStackTrace();  // Mostrar detalles del error
             return Optional.empty();
         }
+    }
+
+    // Método auxiliar para mapear un Post a PostResponseDTO
+    private PostResponseDTO mapToPostResponseDTO(Post post) {
+        Integer likesCount = postRepository.countReactionsByPostId(post.getId());
+        PostResponseDTO postResponseDTO = new PostResponseDTO(post, likesCount);
+
+        // Mapear comentarios y usuarios mencionados
+        postResponseDTO.setComments(post.getComments().stream().map(comment -> {
+            CommentResponseDTO commentResponseDTO = new CommentResponseDTO(comment);
+            commentResponseDTO.setMentionedUsers(comment.getMentionedUsers().stream()
+                    .map(user -> new MentionedUser(user.getUsername()))
+                    .collect(Collectors.toList()));
+            return commentResponseDTO;
+        }).collect(Collectors.toList()));
+
+        // Mapear usuarios mencionados en el post
+        postResponseDTO.setMentionedUsers(post.getMentionedUsers().stream()
+                .map(user -> new MentionedUser(user.getUsername()))
+                .collect(Collectors.toList()));
+
+        // Calcular el puntaje de trending (likes + comentarios)
+        postResponseDTO.setTrending(postResponseDTO.getLikesCount() + postResponseDTO.getComments().size());
+        return postResponseDTO;
     }
 
     public Optional<List<PostResponseDTO>> getPostsByUserUsername(String username) {
@@ -72,7 +118,12 @@ public class PostService {
             return Optional.of(posts.stream().map(post -> {
                 Integer likesCount = postRepository.countReactionsByPostId(post.getId());
                 PostResponseDTO postResponseDTO = new PostResponseDTO(post, likesCount);
-                postResponseDTO.setComments(post.getComments().stream().map(CommentResponseDTO::new).collect(Collectors.toList()));
+                postResponseDTO.setComments(post.getComments().stream().map(comment -> {
+                    CommentResponseDTO commentResponseDTO = new CommentResponseDTO(comment);
+                    commentResponseDTO.setMentionedUsers(comment.getMentionedUsers().stream().map(user -> new MentionedUser(user.getUsername())).collect(Collectors.toList()));
+                    return commentResponseDTO;
+                }).collect(Collectors.toList()));
+                postResponseDTO.setMentionedUsers(post.getMentionedUsers().stream().map(user -> new MentionedUser(user.getUsername())).collect(Collectors.toList()));
                 return postResponseDTO;
             }).collect(Collectors.toList()));
         } catch (Exception e) {
@@ -149,10 +200,10 @@ public class PostService {
         }
     }
 
-    private Set<Tag> extractTags(String content) {
+    private Set<Tag> extractTags(String body) {
         Set<Tag> tags = new HashSet<>();
         Pattern pattern = Pattern.compile("#(\\w+)");
-        Matcher matcher = pattern.matcher(content);
+        Matcher matcher = pattern.matcher(body);
 
         while (matcher.find()) {
             String tagName = matcher.group(1);
@@ -161,6 +212,20 @@ public class PostService {
             tags.add(tag);
         }
         return tags;
+    }
+
+    private List<User> extractMentions(String body) {
+        List<User> mentionedUsers = new ArrayList<>();
+        Pattern pattern = Pattern.compile("@(\\w+)");
+        Matcher matcher = pattern.matcher(body);
+
+        while (matcher.find()) {
+            String mentionedUsername = matcher.group(1);
+            Optional<User> mentionedUserOptional = userRepository.findByUsername(mentionedUsername);
+            mentionedUserOptional.ifPresent(mentionedUsers::add);
+        }
+
+        return mentionedUsers;
     }
 
 }

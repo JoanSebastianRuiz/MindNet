@@ -3,6 +3,7 @@ package JoanRuiz.mindnet.dto;
 import JoanRuiz.mindnet.entities.Comment;
 
 import java.sql.Timestamp;
+import java.util.List;
 
 public class CommentResponseDTO {
     private Integer id;
@@ -11,6 +12,7 @@ public class CommentResponseDTO {
     private String body;
     private Timestamp datetime;
     private String imageUrlUser;
+    private List<MentionedUser> mentionedUsers;
 
     public CommentResponseDTO(Comment comment) {
         this.id = comment.getId();
@@ -68,4 +70,13 @@ public class CommentResponseDTO {
     public void setId(Integer id) {
         this.id = id;
     }
+
+    public List<MentionedUser> getMentionedUsers() {
+        return mentionedUsers;
+    }
+
+    public void setMentionedUsers(List<MentionedUser> mentionedUsers) {
+        this.mentionedUsers = mentionedUsers;
+    }
+
 }

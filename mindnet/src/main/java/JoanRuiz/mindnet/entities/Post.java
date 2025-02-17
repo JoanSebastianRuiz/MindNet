@@ -26,7 +26,12 @@ public class Post {
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "post", fetch = FetchType.LAZY, orphanRemoval = true)
     private List<Comment> comments;
 
-    @ManyToMany(mappedBy = "mentionedPosts", fetch = FetchType.LAZY)
+    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "mention_post",
+            joinColumns = @JoinColumn(name = "id_post"),
+            inverseJoinColumns = @JoinColumn(name = "id_user")
+    )
     private List<User> mentionedUsers;
 
     @ManyToMany(mappedBy = "reactions")

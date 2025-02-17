@@ -2,11 +2,16 @@ package JoanRuiz.mindnet.controller;
 
 import JoanRuiz.mindnet.dto.LikeRequest;
 import JoanRuiz.mindnet.dto.PostRequestDTO;
+import JoanRuiz.mindnet.dto.PostResponseDTO;
 import JoanRuiz.mindnet.entities.Post;
 import JoanRuiz.mindnet.services.PostService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Optional;
 
 @RestController
 @CrossOrigin(origins = {"http://localhost:3000", "https://midominio.com"}, allowCredentials = "true")
@@ -25,13 +30,23 @@ public class PostController {
     }
 
     @GetMapping
-    public ResponseEntity<?> getPosts() {
-        if (postService.getPosts().isPresent()) {
-            return ResponseEntity.ok(postService.getPosts().get());
-        } else {
-            return ResponseEntity.badRequest().body("Error getting posts");
+    public ResponseEntity<?> getPosts(@RequestParam String filter, @RequestParam String scope, @RequestParam String iduser) {
+        try {
+            Integer idUserInteger = Integer.parseInt(iduser); // Intentar parsear el ID
+            Optional<List<PostResponseDTO>> posts = postService.getPosts(filter, scope, idUserInteger);
+
+            if (posts.isPresent()) {
+                return ResponseEntity.ok(posts.get());
+            } else {
+                return ResponseEntity.badRequest().body("Error getting posts");
+            }
+        } catch (NumberFormatException e) {
+            return ResponseEntity.badRequest().body("Invalid user ID format");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred");
         }
     }
+
 
     @GetMapping("/user/{username}")
     public ResponseEntity<?> getPostsByUserId(@PathVariable String username){
