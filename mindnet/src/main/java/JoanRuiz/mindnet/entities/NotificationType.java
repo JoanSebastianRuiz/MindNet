@@ -9,18 +9,26 @@ public class NotificationType {
     @Id
     @GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)
     private Integer id;
-    private String notification;
+    private String name;
 
     public NotificationType() {
     }
 
     public NotificationType(Integer id, String notification) {
         this.id = id;
-        this.notification = notification;
+        this.name = notification;
     }
 
     public Integer getId() {
         return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public void setId(Integer id) {
@@ -28,10 +36,10 @@ public class NotificationType {
     }
 
     public String getNotification() {
-        return notification;
+        return name;
     }
 
     public void setNotification(String notification) {
-        this.notification = notification;
+        this.name = notification;
     }
 }

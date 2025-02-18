@@ -1,12 +1,11 @@
 package JoanRuiz.mindnet.services;
 
-import JoanRuiz.mindnet.dto.CommentResponseDTO;
-import JoanRuiz.mindnet.dto.MentionedUser;
-import JoanRuiz.mindnet.dto.PostRequestDTO;
-import JoanRuiz.mindnet.dto.PostResponseDTO;
+import JoanRuiz.mindnet.dto.*;
+import JoanRuiz.mindnet.entities.NotificationType;
 import JoanRuiz.mindnet.entities.Post;
 import JoanRuiz.mindnet.entities.Tag;
 import JoanRuiz.mindnet.entities.User;
+import JoanRuiz.mindnet.repositories.NotificationTypeRepository;
 import JoanRuiz.mindnet.repositories.PostRepository;
 import JoanRuiz.mindnet.repositories.TagRepository;
 import JoanRuiz.mindnet.repositories.UserRepository;
@@ -31,6 +30,12 @@ public class PostService {
     @Autowired
     private TagRepository tagRepository;
 
+    @Autowired
+    private NotificationService notificationService;
+
+    @Autowired
+    private NotificationTypeRepository notificationTypeRepository;
+
     public Boolean createPost(PostRequestDTO post) {
         try{
             Set<Tag> tags = extractTags(post.getBody());
@@ -43,6 +48,22 @@ public class PostService {
             newPost.setTags(tags);
             newPost.setMentionedUsers(mentionedUsers);
             postRepository.save(newPost);
+
+            for(User user: mentionedUsers){
+                NotificationRequestDTO notificationRequestDTO = new NotificationRequestDTO();
+                notificationRequestDTO.setUser(user);
+                notificationRequestDTO.setUserTrigger(newPost.getUser());
+                notificationRequestDTO.setPost(newPost);
+                notificationRequestDTO.setMessage(newPost.getUser().getFullname()+" has mentioned you in a post.");
+                if(notificationTypeRepository.findByName("mention").isEmpty()){
+                    NotificationType no = new NotificationType();
+                    no.setName("mention");
+                    notificationTypeRepository.save(no);
+                }
+                notificationRequestDTO.setNotificationType(notificationTypeRepository.findByName("mention").get());
+                notificationService.createAndSendNotification(notificationRequestDTO);
+            }
+
             return newPost.getId() != null;
         } catch (Exception e) {
             System.out.println("Error: " + e.getMessage());
@@ -87,7 +108,7 @@ public class PostService {
         }
     }
 
-    // Método auxiliar para mapear un Post a PostResponseDTO
+
     private PostResponseDTO mapToPostResponseDTO(Post post) {
         Integer likesCount = postRepository.countReactionsByPostId(post.getId());
         PostResponseDTO postResponseDTO = new PostResponseDTO(post, likesCount);
@@ -173,6 +194,8 @@ public class PostService {
                 post.getUsersReacted().add(user);
                 user.getReactions().add(post);
                 response = "Post liked";
+                registerNotification(idPost, idUser);
+
             }
 
             postRepository.save(post);
@@ -183,6 +206,27 @@ public class PostService {
             System.out.println("Error: " + e.getMessage());
             return ResponseEntity.badRequest().body("Error reacting to post");
         }
+    }
+
+    private void registerNotification(Integer idPost, Integer idUser){
+        Post post = postRepository.findById(idPost)
+                .orElseThrow();
+
+        User user = userRepository.findById(idUser)
+                .orElseThrow();
+        NotificationRequestDTO notificationRequestDTO = new NotificationRequestDTO();
+        notificationRequestDTO.setUser(post.getUser());
+        notificationRequestDTO.setUserTrigger(user);
+        notificationRequestDTO.setPost(post);
+        notificationRequestDTO.setMessage(user.getFullname()+" has liked your post.");
+        if(notificationTypeRepository.findByName("like").isEmpty()){
+            NotificationType no = new NotificationType();
+            no.setName("like");
+            notificationTypeRepository.save(no);
+        }
+
+        notificationRequestDTO.setNotificationType(notificationTypeRepository.findByName("like").get());
+        notificationService.createAndSendNotification(notificationRequestDTO);
     }
 
     public ResponseEntity<Boolean> userLikeToPost(Integer idPost, Integer idUser) {

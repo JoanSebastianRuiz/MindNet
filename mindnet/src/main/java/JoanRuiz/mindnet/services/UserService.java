@@ -1,9 +1,12 @@
 package JoanRuiz.mindnet.services;
 
+import JoanRuiz.mindnet.dto.NotificationRequestDTO;
 import JoanRuiz.mindnet.dto.UserBasicInfoDTO;
 import JoanRuiz.mindnet.dto.UserRequestDTO;
 import JoanRuiz.mindnet.dto.UserResponseDTO;
+import JoanRuiz.mindnet.entities.NotificationType;
 import JoanRuiz.mindnet.entities.User;
+import JoanRuiz.mindnet.repositories.NotificationTypeRepository;
 import JoanRuiz.mindnet.repositories.UserRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +21,12 @@ import java.util.stream.Collectors;
 public class UserService {
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private NotificationService notificationService;
+
+    @Autowired
+    private NotificationTypeRepository notificationTypeRepository;
 
     public Optional<List<UserResponseDTO>> getAll(){
         try {
@@ -91,6 +100,18 @@ public class UserService {
             if(user!=null && userFollowed!=null && !user.getFollowing().contains(userFollowed)){
                 user.getFollowing().add(userFollowed);
                 userRepository.save(user);
+
+                NotificationRequestDTO notificationRequestDTO = new NotificationRequestDTO();
+                notificationRequestDTO.setUser(userFollowed);
+                notificationRequestDTO.setUserTrigger(user);
+                notificationRequestDTO.setMessage(user.getFullname()+" has followed you.");
+                if(notificationTypeRepository.findByName("follow").isEmpty()){
+                    NotificationType no = new NotificationType();
+                    no.setName("follow");
+                    notificationTypeRepository.save(no);
+                }
+                notificationRequestDTO.setNotificationType(notificationTypeRepository.findByName("follow").get());
+                notificationService.createAndSendNotification(notificationRequestDTO);
                 return true;
             } else {
                 return false;

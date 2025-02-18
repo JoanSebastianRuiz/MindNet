@@ -2,13 +2,12 @@ package JoanRuiz.mindnet.services;
 
 import JoanRuiz.mindnet.dto.CommentRequestDTO;
 import JoanRuiz.mindnet.dto.CommentResponseDTO;
+import JoanRuiz.mindnet.dto.NotificationRequestDTO;
 import JoanRuiz.mindnet.entities.Comment;
+import JoanRuiz.mindnet.entities.NotificationType;
 import JoanRuiz.mindnet.entities.Tag;
 import JoanRuiz.mindnet.entities.User;
-import JoanRuiz.mindnet.repositories.CommentRepository;
-import JoanRuiz.mindnet.repositories.PostRepository;
-import JoanRuiz.mindnet.repositories.TagRepository;
-import JoanRuiz.mindnet.repositories.UserRepository;
+import JoanRuiz.mindnet.repositories.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -30,6 +29,12 @@ public class CommentService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private NotificationTypeRepository notificationTypeRepository;
+
+    @Autowired
+    private NotificationService notificationService;
 
     public Optional<List<CommentResponseDTO>> getCommentsByPostId(Integer idPost) {
         try {
@@ -53,6 +58,37 @@ public class CommentService {
             newComment.setUser(userRepository.findByUsername(comment.getUsername()).get());
             newComment.setMentionedUsers(mentionedUsers);
             commentRepository.save(newComment);
+
+            // Crear notificaciones
+            for (User mentionedUser : mentionedUsers) {
+                NotificationRequestDTO notificationRequestDTO = new NotificationRequestDTO();
+                notificationRequestDTO.setUser(mentionedUser);
+                notificationRequestDTO.setUserTrigger(newComment.getUser());
+                notificationRequestDTO.setComment(newComment);
+                notificationRequestDTO.setMessage(newComment.getUser().getFullname()+" has mentioned you in a comment.");
+                notificationRequestDTO.setPost(newComment.getPost());
+                if(notificationTypeRepository.findByName("mention").isEmpty()){
+                    NotificationType no = new NotificationType();
+                    no.setName("mention");
+                    notificationTypeRepository.save(no);
+                }
+                notificationRequestDTO.setNotificationType(notificationTypeRepository.findByName("mention").get());
+                notificationService.createAndSendNotification(notificationRequestDTO);
+            }
+
+            NotificationRequestDTO notificationRequestDTO = new NotificationRequestDTO();
+            notificationRequestDTO.setUser(newComment.getPost().getUser());
+            notificationRequestDTO.setUserTrigger(newComment.getUser());
+            notificationRequestDTO.setComment(newComment);
+            notificationRequestDTO.setMessage(newComment.getUser().getFullname()+" has commented on your post.");
+            notificationRequestDTO.setPost(newComment.getPost());
+            if(notificationTypeRepository.findByName("comment").isEmpty()){
+                NotificationType no = new NotificationType();
+                no.setName("comment");
+                notificationTypeRepository.save(no);
+            }
+            notificationRequestDTO.setNotificationType(notificationTypeRepository.findByName("comment").get());
+            notificationService.createAndSendNotification(notificationRequestDTO);
 
             return newComment.getId() != null;
         } catch (Exception e) {

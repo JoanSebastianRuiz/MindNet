@@ -30,10 +30,11 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
                 .csrf(csrf -> csrf.disable())
-                .cors(cors -> cors.configurationSource(corsConfigurationSource)) // <-- Añade esto
+                .cors(cors -> cors.configurationSource(corsConfigurationSource)) // Permite CORS
                 .authorizeHttpRequests(authRequest ->
                         authRequest
-                                .requestMatchers("/auth/**").permitAll()
+                                .requestMatchers("/auth/**").permitAll()  // Permitir autenticación sin token
+                                .requestMatchers("/ws/**").permitAll()  // Permite acceso a WebSocket
                                 .anyRequest().authenticated()
                 )
                 .sessionManagement(sessionManager ->
@@ -43,6 +44,8 @@ public class SecurityConfig {
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
+
+
 
 
 

@@ -4,6 +4,8 @@ import JoanRuiz.mindnet.dto.LikeRequest;
 import JoanRuiz.mindnet.dto.PostRequestDTO;
 import JoanRuiz.mindnet.dto.PostResponseDTO;
 import JoanRuiz.mindnet.entities.Post;
+import JoanRuiz.mindnet.repositories.NotificationTypeRepository;
+import JoanRuiz.mindnet.services.NotificationService;
 import JoanRuiz.mindnet.services.PostService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
