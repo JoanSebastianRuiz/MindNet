@@ -14,9 +14,9 @@ CREATE TABLE users (
 CREATE TABLE post (
     id SERIAL PRIMARY KEY,
     id_user INTEGER NOT NULL,
-    body VARCHAR(500),
+    body VARCHAR(500) NOT NULL,
     image_url VARCHAR(200),
-    datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    datetime TIMESTAMP NOT NULL,
     FOREIGN KEY (id_user) REFERENCES users(id) ON DELETE CASCADE
 );
 
@@ -24,8 +24,8 @@ CREATE TABLE comment (
     id SERIAL PRIMARY KEY,
     id_post INTEGER NOT NULL,
     id_user INTEGER NOT NULL,
-    body VARCHAR(200),
-    datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    body VARCHAR(200) NOT NULL,
+    datetime TIMESTAMP NOT NULL,
     FOREIGN KEY (id_post) REFERENCES post(id) ON DELETE CASCADE,
     FOREIGN KEY (id_user) REFERENCES users(id) ON DELETE CASCADE
 );
@@ -99,7 +99,7 @@ CREATE TABLE notification (
     id_notification_type INTEGER NOT NULL,
     message VARCHAR(200) NOT NULL,
     seen BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP NOT NULL,
     FOREIGN KEY (id_user) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (id_post) REFERENCES post(id) ON DELETE CASCADE,
     FOREIGN KEY (id_user_trigger) REFERENCES users(id) ON DELETE CASCADE,

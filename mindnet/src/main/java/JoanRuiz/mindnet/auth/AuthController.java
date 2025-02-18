@@ -59,7 +59,7 @@ public class AuthController {
         cookie.setMaxAge(0);
 
         response.addCookie(cookie);
-        return ResponseEntity.ok("Logout exitoso");
+        return ResponseEntity.ok("Logout successful");
     }
 
     @PostMapping("/validate-token")
