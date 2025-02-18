@@ -697,8 +697,8 @@ Host: localhost:8080
 
 ## Repositorios
 
-- **Backend**: [MindNet Backend](https://github.com/usuario/mindnet-backend)
-- **Frontend**: [MindNet Frontend](https://github.com/usuario/mindnet-frontend)
+- **Backend**: [MindNet Backend](https://github.com/JoanSebastianRuiz/MindNet)
+- **Frontend**: [MindNet Frontend](https://github.com/JoanSebastianRuiz/MindNet-Front)
 
 Últimos hashes de commits:
 
@@ -710,6 +710,9 @@ Host: localhost:8080
 ## Documentación del Proyecto
 
 - **Diagrama de base de datos (Modelo Entidad-Relación)**:
+
+![Image](https://github.com/user-attachments/assets/ae1f470c-4dbd-4b45-a3d4-b9fa5a4f77ba)
+
 - **Documentación de la API con Swagger**:
     La documentacion de la API con Swagger se encuentra en la carpeta Swagger, donde esta el archivo yaml y una carpeta con el html
 - **Video demostrativo**: [Ver aquí](https://link_video.com)
