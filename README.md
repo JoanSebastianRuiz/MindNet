@@ -702,8 +702,8 @@ Host: localhost:8080
 
 Últimos hashes de commits:
 
-- Backend: `abc1234`
-- Frontend: `def5678`
+- Backend: `5f34218f0406155d6ee46b32ea9eff093f6e15da`
+- Frontend: `692f900a9f16bd5f9b9302a206c634ec16d33905`
 
 ---
 
