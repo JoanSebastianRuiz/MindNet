@@ -9,6 +9,7 @@ import JoanRuiz.mindnet.repositories.NotificationTypeRepository;
 import JoanRuiz.mindnet.repositories.PostRepository;
 import JoanRuiz.mindnet.repositories.TagRepository;
 import JoanRuiz.mindnet.repositories.UserRepository;
+import JoanRuiz.mindnet.util.validators.ImageValidator;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -39,10 +40,12 @@ public class PostService {
     public Boolean createPost(PostRequestDTO post) {
         try{
             Set<Tag> tags = extractTags(post.getBody());
-            List<User> mentionedUsers = extractMentions(post.getBody());
+            Set<User> mentionedUsers = extractMentions(post.getBody());
             Post newPost = new Post();
             newPost.setBody(post.getBody());
-            newPost.setImageUrl(post.getImageUrl());
+            if(post.getImageUrl() != null && ImageValidator.isValidImageUrl(post.getImageUrl())){
+                newPost.setImageUrl(post.getImageUrl());
+            }
             newPost.setUser(userRepository.findByUsername(post.getUsername()).get());
             newPost.setDatetime(post.getDatetime());
             newPost.setTags(tags);
@@ -50,6 +53,9 @@ public class PostService {
             postRepository.save(newPost);
 
             for(User user: mentionedUsers){
+                if(Objects.equals(user.getId(), newPost.getUser().getId())){
+                    continue;
+                }
                 NotificationRequestDTO notificationRequestDTO = new NotificationRequestDTO();
                 notificationRequestDTO.setUser(user);
                 notificationRequestDTO.setUserTrigger(newPost.getUser());
@@ -167,7 +173,9 @@ public class PostService {
         try {
             Post postToUpdate = postRepository.findById(id).get();
             postToUpdate.setBody(post.getBody());
-            postToUpdate.setImageUrl(post.getImageUrl());
+            if(post.getImageUrl() != null && ImageValidator.isValidImageUrl(post.getImageUrl())){
+                postToUpdate.setImageUrl(post.getImageUrl());
+            }
             postRepository.save(postToUpdate);
             return true;
         } catch (Exception e) {
@@ -194,8 +202,9 @@ public class PostService {
                 post.getUsersReacted().add(user);
                 user.getReactions().add(post);
                 response = "Post liked";
-                registerNotification(idPost, idUser);
-
+                if(!Objects.equals(post.getUser().getId(), idUser)){
+                    registerNotification(idPost, idUser);
+                }
             }
 
             postRepository.save(post);
@@ -258,8 +267,8 @@ public class PostService {
         return tags;
     }
 
-    private List<User> extractMentions(String body) {
-        List<User> mentionedUsers = new ArrayList<>();
+    private Set<User> extractMentions(String body) {
+        Set<User> mentionedUsers = new HashSet<>();
         Pattern pattern = Pattern.compile("@(\\w+)");
         Matcher matcher = pattern.matcher(body);
 
@@ -270,6 +279,24 @@ public class PostService {
         }
 
         return mentionedUsers;
+    }
+
+    public Optional<PostResponseDTO> getPostById(Integer id) {
+        try {
+            Post post = postRepository.findById(id).orElseThrow();
+            Integer likesCount = postRepository.countReactionsByPostId(post.getId());
+            PostResponseDTO postResponseDTO = new PostResponseDTO(post, likesCount);
+            postResponseDTO.setComments(post.getComments().stream().map(comment -> {
+                CommentResponseDTO commentResponseDTO = new CommentResponseDTO(comment);
+                commentResponseDTO.setMentionedUsers(comment.getMentionedUsers().stream().map(user -> new MentionedUser(user.getUsername())).collect(Collectors.toList()));
+                return commentResponseDTO;
+            }).collect(Collectors.toList()));
+            postResponseDTO.setMentionedUsers(post.getMentionedUsers().stream().map(user -> new MentionedUser(user.getUsername())).collect(Collectors.toList()));
+            return Optional.of(postResponseDTO);
+        } catch (Exception e) {
+            System.out.println("Error: " + e.getMessage());
+            return Optional.empty();
+        }
     }
 
 }

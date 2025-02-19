@@ -8,5 +8,7 @@ import java.util.List;
 
 @Repository
 public interface NotificationRepository extends CrudRepository<Notification, Integer> {
-    List<Notification> findByUserId(Integer userId);
+    List<Notification> findByUserIdAndSeenOrderByCreatedAtDesc(Integer userId, Boolean seen);
+    Integer countByUserIdAndSeen(Integer userId, Boolean seen);
+
 }

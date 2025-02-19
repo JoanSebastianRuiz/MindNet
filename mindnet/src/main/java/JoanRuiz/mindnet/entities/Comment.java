@@ -26,7 +26,7 @@ public class Comment {
             joinColumns = @JoinColumn(name = "id_comment"),
             inverseJoinColumns = @JoinColumn(name = "id_user")
     )
-    private List<User> mentionedUsers;
+    private Set<User> mentionedUsers;
 
     @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinTable(
@@ -42,7 +42,7 @@ public class Comment {
     public Comment() {
     }
 
-    public Comment(Integer id, Post post, User user, List<User> mentionedUsers, Set<Tag> tags, String body, Timestamp datetime) {
+    public Comment(Integer id, Post post, User user, Set<User> mentionedUsers, Set<Tag> tags, String body, Timestamp datetime) {
         this.id = id;
         this.post = post;
         this.user = user;
@@ -76,11 +76,11 @@ public class Comment {
         this.user = user;
     }
 
-    public List<User> getMentionedUsers() {
+    public Set<User> getMentionedUsers() {
         return mentionedUsers;
     }
 
-    public void setMentionedUsers(List<User> mentionedUsers) {
+    public void setMentionedUsers(Set<User> mentionedUsers) {
         this.mentionedUsers = mentionedUsers;
     }
 

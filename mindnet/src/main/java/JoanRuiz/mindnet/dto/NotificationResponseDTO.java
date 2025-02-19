@@ -1,6 +1,6 @@
 package JoanRuiz.mindnet.dto;
 
-public class NotificacionResponseDTO {
+public class NotificationResponseDTO {
     private Integer id;
     private Integer idUser;
     private String message;
@@ -10,11 +10,12 @@ public class NotificacionResponseDTO {
     private Integer idComment;
     private Integer idPost;
     private String nameNotificationType;
+    private String fullNameUserTrigger;
 
-    public NotificacionResponseDTO() {
+    public NotificationResponseDTO() {
     }
 
-    public NotificacionResponseDTO(Integer id, Integer idUser, String message, String createdAt, Boolean seen, String usernameUserTrigger, Integer idComment, Integer idPost, String nameNotificationType) {
+    public NotificationResponseDTO(Integer id, Integer idUser, String message, String createdAt, Boolean seen, String usernameUserTrigger, Integer idComment, Integer idPost, String nameNotificationType, String fullNameUserTrigger) {
         this.id = id;
         this.idUser = idUser;
         this.message = message;
@@ -24,6 +25,7 @@ public class NotificacionResponseDTO {
         this.idComment = idComment;
         this.idPost = idPost;
         this.nameNotificationType = nameNotificationType;
+        this.fullNameUserTrigger = fullNameUserTrigger;
     }
 
     public Integer getId() {
@@ -96,5 +98,13 @@ public class NotificacionResponseDTO {
 
     public void setIdUser(Integer idUser) {
         this.idUser = idUser;
+    }
+
+    public String getFullNameUserTrigger() {
+        return fullNameUserTrigger;
+    }
+
+    public void setFullNameUserTrigger(String fullNameUserTrigger) {
+        this.fullNameUserTrigger = fullNameUserTrigger;
     }
 }

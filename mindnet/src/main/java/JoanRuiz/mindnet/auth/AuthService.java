@@ -4,6 +4,7 @@ import JoanRuiz.mindnet.entities.User;
 import JoanRuiz.mindnet.jwt.JwtService;
 import JoanRuiz.mindnet.repositories.UserRepository;
 import JoanRuiz.mindnet.user.Role;
+import JoanRuiz.mindnet.util.validators.ImageValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -39,7 +40,9 @@ public class AuthService {
         user.setUsername(request.getUsername());
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setImageUrl(request.getImageUrl());
+        if(request.getImageUrl()!=null && ImageValidator.isValidImageUrl(request.getImageUrl())){
+            user.setImageUrl(request.getImageUrl());
+        }
         user.setBiography(request.getBiography());
         user.setCellphone(request.getCellphone());
         user.setBirthday(request.getBirthday());

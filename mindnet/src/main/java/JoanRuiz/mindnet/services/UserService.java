@@ -8,6 +8,7 @@ import JoanRuiz.mindnet.entities.NotificationType;
 import JoanRuiz.mindnet.entities.User;
 import JoanRuiz.mindnet.repositories.NotificationTypeRepository;
 import JoanRuiz.mindnet.repositories.UserRepository;
+import JoanRuiz.mindnet.util.validators.ImageValidator;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -61,19 +62,15 @@ public class UserService {
         try {
             User user = userRepository.findById(id).orElseThrow(()->new Exception("User not found"));
 
-            /*
-            if(userRepository.findByUsername(userRequestDTO.getUsername()).isPresent() && !user.getUsername().equals(userRequestDTO.getUsername())){
-                return ResponseEntity.badRequest().body("Username already exists");
-            }
-            user.setUsername(userRequestDTO.getUsername());
-            */
-
             user.setFullname(userRequestDTO.getFullname());
 
             if(userRepository.findByEmail(userRequestDTO.getEmail()).isPresent() && !user.getEmail().equals(userRequestDTO.getEmail())){
                 return ResponseEntity.badRequest().body("Email already exists");
             }
             user.setEmail(userRequestDTO.getEmail());
+            if(userRequestDTO.getImageUrl()!=null && ImageValidator.isValidImageUrl(userRequestDTO.getImageUrl())){
+                user.setImageUrl(userRequestDTO.getImageUrl());
+            }
             user.setImageUrl(userRequestDTO.getImageUrl());
             user.setBiography(userRequestDTO.getBiography());
 

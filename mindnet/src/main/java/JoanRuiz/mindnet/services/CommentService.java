@@ -3,10 +3,10 @@ package JoanRuiz.mindnet.services;
 import JoanRuiz.mindnet.dto.CommentRequestDTO;
 import JoanRuiz.mindnet.dto.CommentResponseDTO;
 import JoanRuiz.mindnet.dto.NotificationRequestDTO;
-import JoanRuiz.mindnet.entities.Comment;
-import JoanRuiz.mindnet.entities.NotificationType;
-import JoanRuiz.mindnet.entities.Tag;
-import JoanRuiz.mindnet.entities.User;
+import JoanRuiz.mindnet.entities.*;
+import JoanRuiz.mindnet.exception.CommentException;
+import JoanRuiz.mindnet.exception.PostException;
+import JoanRuiz.mindnet.exception.UserException;
 import JoanRuiz.mindnet.repositories.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -39,7 +39,13 @@ public class CommentService {
     public Optional<List<CommentResponseDTO>> getCommentsByPostId(Integer idPost) {
         try {
             List<Comment> comments = commentRepository.findByPostId(idPost);
+            if (comments.isEmpty()) {
+                throw new CommentException("Comments not found");
+            }
             return Optional.of(comments.stream().map(comment -> new CommentResponseDTO(comment)).collect(Collectors.toList()));
+        } catch (CommentException e) {
+            System.out.println(e.getMessage());
+            return Optional.empty();
         } catch (Exception e) {
             System.out.println("Error: " + e.getMessage());
             return Optional.empty();
@@ -49,18 +55,22 @@ public class CommentService {
     public Boolean createComment(CommentRequestDTO comment) {
         try {
             Set<Tag> tags = extractTags(comment.getBody());
-            List<User> mentionedUsers = extractMentions(comment.getBody());
+            Set<User> mentionedUsers = extractMentions(comment.getBody());
             Comment newComment = new Comment();
             newComment.setBody(comment.getBody());
-            newComment.setPost(postRepository.findById(comment.getIdPost()).get());
+            newComment.setPost(postRepository.findById(comment.getIdPost()).orElseThrow(() -> new PostException("Post not found")));
             newComment.setTags(tags);
             newComment.setDatetime(comment.getDatetime());
-            newComment.setUser(userRepository.findByUsername(comment.getUsername()).get());
+            newComment.setUser(userRepository.findByUsername(comment.getUsername()).orElseThrow(() -> new UserException("User not found")));
             newComment.setMentionedUsers(mentionedUsers);
             commentRepository.save(newComment);
 
             // Crear notificaciones
             for (User mentionedUser : mentionedUsers) {
+                if (Objects.equals(mentionedUser.getId(), newComment.getUser().getId())) {
+                    continue;
+                }
+
                 NotificationRequestDTO notificationRequestDTO = new NotificationRequestDTO();
                 notificationRequestDTO.setUser(mentionedUser);
                 notificationRequestDTO.setUserTrigger(newComment.getUser());
@@ -74,6 +84,10 @@ public class CommentService {
                 }
                 notificationRequestDTO.setNotificationType(notificationTypeRepository.findByName("mention").get());
                 notificationService.createAndSendNotification(notificationRequestDTO);
+            }
+
+            if(Objects.equals(newComment.getUser().getId(), newComment.getPost().getUser().getId())){
+                return newComment.getId() != null;
             }
 
             NotificationRequestDTO notificationRequestDTO = new NotificationRequestDTO();
@@ -91,6 +105,9 @@ public class CommentService {
             notificationService.createAndSendNotification(notificationRequestDTO);
 
             return newComment.getId() != null;
+        } catch (PostException | UserException e) {
+            System.out.println(e.getMessage());
+            return false;
         } catch (Exception e) {
             System.out.println("Error: " + e.getMessage());
             return false;
@@ -110,8 +127,8 @@ public class CommentService {
         return tags;
     }
 
-    private List<User> extractMentions(String body) {
-        List<User> mentionedUsers = new ArrayList<>();
+    private Set<User> extractMentions(String body) {
+        Set<User> mentionedUsers = new HashSet<>();
         Pattern pattern = Pattern.compile("@(\\w+)");
         Matcher matcher = pattern.matcher(body);
 

@@ -86,4 +86,15 @@ public class PostController {
     public ResponseEntity<Boolean> userLikeToPost(@PathVariable Integer id, @RequestParam Integer idUser) {
         return postService.userLikeToPost(id, idUser);
     }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getPostById(@PathVariable Integer id) {
+        Optional<PostResponseDTO> post = postService.getPostById(id);
+
+        if (post.isPresent()) {
+            return ResponseEntity.ok(post.get());
+        } else {
+            return ResponseEntity.badRequest().body("Error getting post by id");
+        }
+    }
 }

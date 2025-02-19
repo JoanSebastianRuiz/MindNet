@@ -32,7 +32,7 @@ public class Post {
             joinColumns = @JoinColumn(name = "id_post"),
             inverseJoinColumns = @JoinColumn(name = "id_user")
     )
-    private List<User> mentionedUsers;
+    private Set<User> mentionedUsers;
 
     @ManyToMany(mappedBy = "reactions")
     private List<User> usersReacted;
@@ -48,7 +48,7 @@ public class Post {
     public Post() {
     }
 
-    public Post(Integer id, User user, String body, String imageUrl, Timestamp datetime, List<Comment> comments, List<User> mentionedUsers, List<User> usersReacted, Set<Tag> tags) {
+    public Post(Integer id, User user, String body, String imageUrl, Timestamp datetime, List<Comment> comments, Set<User> mentionedUsers, List<User> usersReacted, Set<Tag> tags) {
         this.id = id;
         this.user = user;
         this.body = body;
@@ -108,11 +108,11 @@ public class Post {
         this.comments = comments;
     }
 
-    public List<User> getMentionedUsers() {
+    public Set<User> getMentionedUsers() {
         return mentionedUsers;
     }
 
-    public void setMentionedUsers(List<User> mentionedUsers) {
+    public void setMentionedUsers(Set<User> mentionedUsers) {
         this.mentionedUsers = mentionedUsers;
     }
 
